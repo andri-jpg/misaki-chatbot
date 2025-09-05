@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>Blue Archive Misaki Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="preload" content="/assets/Misaki_home2.png" as="image">
+  <link rel="preconnect" content="/assets/Misaki_home.skel">
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗣️</text></svg>" />
+
+  <meta name="title" content="Misaki Live 2D Chatbot">
+  <meta name="description" content="Interactive Misaki Live 2D Chatbot">
+  <meta name="author" content="Blue Archive">
+  <meta property="og:title" content="Misaki Live 2D Chatbot">
+  <meta property="og:description" content="Interactive Misaki Live 2D Chatbot">
+  <meta property="og:image:width" content="2560">
+  <meta property="og:image:height" content="1440">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:type" content="website">
+
+  <link rel="stylesheet" href="css/styles.css">
+
+  <script src="/lib/spine-webgl-for-wpe.js"></script>
+</head>
+
+<body>
+  <main id="container">
+    <canvas id="canvas"></canvas>
+  </main>
+
+  <div id="status-indicator" class="status-ready">Ready</div>
+  <audio src="Theme.wav" autoplay loop style="display:none;"></audio>
+  <div id="animation-controls">
+    <button data-motion="Pat_01_M" data-mouth="Pat_01_A">Pat Head</button>
+    <button data-motion="Talk_01_M" data-mouth="Talk_01_A">Talk 1</button>
+    <button data-motion="Talk_02_M" data-mouth="Talk_02_A">Talk 2</button>
+    <button data-motion="Look_01_M" data-mouth="Look_01_A">Look Around</button>
+    <button data-motion="Idle_01" data-mouth="">Idle</button>
+  </div>
+
+  <div id="chat-interface">
+    <div id="chat-messages">
+      <div class="message bot-message">
+        <strong>Misaki:</strong> ...hello. I'm here if you want to talk, I guess.
+      </div>
+    </div>
+    <div class="typing-indicator message" id="typing-indicator">
+      <strong>Misaki:</strong> <span class="pulse">thinking...</span>
+    </div>
+    <div id="chat-input-container">
+      <input type="text" id="chat-input" placeholder="Type your message..." maxlength="500">
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+
+  <audio id="tts-audio" preload="auto"></audio>
+
+  <script src="js/config.js"></script>
+  <script src="js/spine-manager.js"></script>
+  <script src="js/api-client.js"></script>
+  <script src="js/chat-manager.js"></script>
+  <script src="js/main.js"></script>
+  <script>
+
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const canvas = document.getElementById('canvas');
+      if (!canvas) return;
+
+      let isPatting = false;
+
+      canvas.addEventListener('mousedown', (event) => {
+
+        if (event.button === 0) {
+          isPatting = true;
+        }
+      });
+
+
+      canvas.addEventListener('mousemove', () => {
+
+        if (isPatting && window.spineManager && window.spineManager.isReady()) {
+
+
+          const currentAnim = window.spineManager.getCurrentAnimation();
+
+
+          if (!currentAnim || currentAnim.motion !== 'Pat_01_M') {
+
+            const patButton = document.querySelector('button[data-motion="Pat_01_M"]');
+            const motion = patButton.dataset.motion;
+            const mouth = patButton.dataset.mouth;
+
+            window.spineManager.playAnimation(motion, mouth, true);
+          }
+        }
+      });
+
+
+      window.addEventListener('mouseup', (event) => {
+        if (event.button === 0) {
+          if (isPatting) {
+            isPatting = false;
+
+
+            if (window.spineManager && window.spineManager.isReady()) {
+              window.spineManager.returnToIdle();
+            }
+          }
+        }
+      });
+
+    });</script>
+</body>
+
+</html>

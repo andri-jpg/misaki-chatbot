@@ -1,0 +1,10 @@
+Download model from here
+https://huggingface.co/lj1995/GPT-SoVITS/tree/main
+
+list of model used 
+chinese-hubert-base
+chinese-roberta-wwm-ext-large
+https://huggingface.co/lj1995/GPT-SoVITS/tree/main/gsv-v2final-pretrained
+https://huggingface.co/lj1995/GPT-SoVITS/blob/main/sv/pretrained_eres2netv2w24s4ep4.ckpt
+https://huggingface.co/lj1995/GPT-SoVITS/tree/main/v2Pro
+https://huggingface.co/lj1995/GPT-SoVITS/blob/main/s1bert25hz-2kh-longer-epoch%3D68e-step%3D50232.ckpt
