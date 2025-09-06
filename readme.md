@@ -1,11 +1,11 @@
 # Misaki Live2D AI Chatbot
 
-![Project Preview](preview.png)
+<video src="preview.mp4" controls muted autoplay loop style="max-width: 100%; height: auto;">
+</video>
 
 This project brings the character Misaki from the game *Blue Archive* to life as an interactive AI chatbot. It combines a Spine WebGL Live2D model with a Python backend for AI-powered conversation and real-time Text-to-Speech (TTS) voice generation.
 
 ---
-
 ## ✨ Features
 
 * **Interactive Live2D Model:** Misaki's model is rendered in the browser using Spine WebGL, allowing for smooth animations and interactions.

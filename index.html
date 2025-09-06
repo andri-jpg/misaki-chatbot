@@ -1,119 +1,258 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
-
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <title>Blue Archive Misaki Chatbot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Interactive Spine Character (Modern UI)</title>
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css"/>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
 
-  <link rel="preload" content="/assets/Misaki_home2.png" as="image">
-  <link rel="preconnect" content="/assets/Misaki_home.skel">
-  <link rel="icon"
-    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗣️</text></svg>" />
+    #spine {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
 
-  <meta name="title" content="Misaki Live 2D Chatbot">
-  <meta name="description" content="Interactive Misaki Live 2D Chatbot">
-  <meta name="author" content="Blue Archive">
-  <meta property="og:title" content="Misaki Live 2D Chatbot">
-  <meta property="og:description" content="Interactive Misaki Live 2D Chatbot">
-  <meta property="og:image:width" content="2560">
-  <meta property="og:image:height" content="1440">
-  <meta property="og:locale" content="en_US">
-  <meta property="og:type" content="website">
+    #app {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+    }
 
-  <link rel="stylesheet" href="css/styles.css">
+    #app > * {
+      pointer-events: auto;
+    }
 
-  <script src="/lib/spine-webgl-for-wpe.js"></script>
+    /* Modern setting button */
+    .setting-button {
+      position: absolute;
+      top: 24px;
+      right: 24px;
+      z-index: 10;
+      border-radius: 12px;
+      padding: 12px 20px;
+      backdrop-filter: blur(10px);
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .setting-button:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Modern settings panel */
+    .setting {
+      position: absolute;
+      top: 80px;
+      right: 24px;
+      width: 450px;
+      max-height: calc(100vh - 120px);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .setting-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .close-btn {
+      padding: 4px;
+      border-radius: 8px;
+    }
+
+    .setting-tabs .el-tabs__header {
+      margin: 0;
+      border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+
+    .setting-tabs .el-tabs__nav-wrap {
+      padding: 0 20px;
+    }
+
+    .setting-tabs .el-tabs__content {
+      padding: 20px;
+      max-height: calc(100vh - 280px);
+      overflow-y: auto;
+    }
+
+    /* Custom scrollbar */
+    .setting-tabs .el-tabs__content::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .setting-tabs .el-tabs__content::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+      border-radius: 3px;
+    }
+
+    .setting-tabs .el-tabs__content::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 3px;
+    }
+
+    /* Speech bubble */
+    .badialog {
+      position: absolute;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.75);
+      border-radius: 16px;
+      max-width: 80%;
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      pointer-events: none;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .opacity-in {
+      opacity: 1;
+      transform: translateY(-8px);
+    }
+
+    /* Modern chat dock */
+    .chatdock {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 24px;
+      width: min(720px, 92%);
+      border-radius: 16px;
+      backdrop-filter: blur(20px);
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
+      padding: 16px;
+      z-index: 20;
+    }
+
+    .chat-input-container {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .chat-input-container .el-input {
+      flex: 1;
+    }
+
+    .chat-input-container .el-button {
+      border-radius: 12px;
+      padding: 12px 24px;
+    }
+
+    /* Interaction area */
+    .interaction-area {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    /* Form improvements */
+    .el-form-item {
+      margin-bottom: 20px;
+    }
+
+    .el-input-number {
+      width: 100%;
+    }
+
+    .el-slider {
+      margin: 8px 0;
+    }
+
+    /* Custom fonts */
+    @font-face {
+      font-family: 'TJL';
+      src: url('./TJL.ttf');
+    }
+
+    @font-face {
+      font-family: 'XW';
+      src: url('./XW.ttf');
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .setting {
+        width: calc(100vw - 48px);
+        right: 24px;
+        left: 24px;
+      }
+
+      .chatdock {
+        width: calc(100vw - 48px);
+      }
+
+      .setting-button {
+        top: 16px;
+        right: 16px;
+        padding: 10px 16px;
+      }
+    }
+
+    /* Loading and disabled states */
+    .el-button.is-loading {
+      background: rgba(64, 158, 255, 0.8);
+    }
+
+    /* Animation improvements */
+    .el-card {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .el-tabs__item {
+      font-weight: 500;
+    }
+
+    .el-tabs__item.is-active {
+      font-weight: 600;
+    }
+  </style>
 </head>
-
 <body>
-  <main id="container">
-    <canvas id="canvas"></canvas>
-  </main>
+  <div id="spine"></div>
+  <div id="app"></div>
 
-  <div id="status-indicator" class="status-ready">Ready</div>
-  <audio src="Theme.wav" autoplay loop style="display:none;"></audio>
-  <div id="animation-controls">
-    <button data-motion="Pat_01_M" data-mouth="Pat_01_A">Pat Head</button>
-    <button data-motion="Talk_01_M" data-mouth="Talk_01_A">Talk 1</button>
-    <button data-motion="Talk_02_M" data-mouth="Talk_02_A">Talk 2</button>
-    <button data-motion="Look_01_M" data-mouth="Look_01_A">Look Around</button>
-    <button data-motion="Idle_01" data-mouth="">Idle</button>
-  </div>
+  <!-- Audio elements -->
+  <audio id="talkaudio"></audio>
+  <audio id="bgmaudio"></audio>
+  <audio id="chataudio"></audio>
 
-  <div id="chat-interface">
-    <div id="chat-messages">
-      <div class="message bot-message">
-        <strong>Misaki:</strong> ...hello. I'm here if you want to talk, I guess.
-      </div>
-    </div>
-    <div class="typing-indicator message" id="typing-indicator">
-      <strong>Misaki:</strong> <span class="pulse">thinking...</span>
-    </div>
-    <div id="chat-input-container">
-      <input type="text" id="chat-input" placeholder="Type your message..." maxlength="500">
-      <button id="send-btn">Send</button>
-    </div>
-  </div>
+  <!-- External libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/5.3.12/pixi.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/pixi-spine@2.1.9"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://unpkg.com/element-plus"></script>
+  <script src="https://cdn.jsdelivr.net/npm/revolt-fx@1.1.0/dist/revoltfx.min.js"></script>
 
-  <audio id="tts-audio" preload="auto"></audio>
-
-  <script src="js/config.js"></script>
-  <script src="js/spine-manager.js"></script>
-  <script src="js/api-client.js"></script>
-  <script src="js/chat-manager.js"></script>
-  <script src="js/main.js"></script>
-  <script>
-
-
-    window.addEventListener('DOMContentLoaded', () => {
-      const canvas = document.getElementById('canvas');
-      if (!canvas) return;
-
-      let isPatting = false;
-
-      canvas.addEventListener('mousedown', (event) => {
-
-        if (event.button === 0) {
-          isPatting = true;
-        }
-      });
-
-
-      canvas.addEventListener('mousemove', () => {
-
-        if (isPatting && window.spineManager && window.spineManager.isReady()) {
-
-
-          const currentAnim = window.spineManager.getCurrentAnimation();
-
-
-          if (!currentAnim || currentAnim.motion !== 'Pat_01_M') {
-
-            const patButton = document.querySelector('button[data-motion="Pat_01_M"]');
-            const motion = patButton.dataset.motion;
-            const mouth = patButton.dataset.mouth;
-
-            window.spineManager.playAnimation(motion, mouth, true);
-          }
-        }
-      });
-
-
-      window.addEventListener('mouseup', (event) => {
-        if (event.button === 0) {
-          if (isPatting) {
-            isPatting = false;
-
-
-            if (window.spineManager && window.spineManager.isReady()) {
-              window.spineManager.returnToIdle();
-            }
-          }
-        }
-      });
-
-    });</script>
+  <!-- Main application -->
+  <script type="module" src="./main.js"></script>
 </body>
-
 </html>

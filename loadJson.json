@@ -1,0 +1,37 @@
+{
+  "fileNames": ["Misaki_home"],
+  "talkName": "Dev_Talk_0",
+  "talkNameEnd": "_M",
+  "touchbone": "Touch_Eye",
+  "eyeRadius": 20,
+  "headAnimation": "Pat_01",
+  "headAnimationEnd" : "PatEnd_01",
+  "language": ["jp","ch","en","vi","th","kr"],
+  "animationIndex": [
+    {"name": "Misaki_home", "animationName": "Start_Idle_01"}
+  ],
+  "mixType": 1,
+  "talkMax": 5,
+  "particle": {
+    "particleName": "shiroko_riding",
+    "autoPlay":true,
+    "x": 0.5,
+    "y": 0.5,
+    "width": 1,
+    "height": 1
+  },
+  "bgString": "BG_00_R",
+  "indexs": [-2,-10],
+  "ai": {
+    "defaultEngine": "tflite", 
+    "tflite": {
+      "modelAssetPath": "./model/gemma3-1b-it-int4-web.task",
+      "maxTokens": 512,
+      "temperature": 0.6,
+      "topK": 40,
+      "randomSeed": 101,
+      "maxNumImages": 0,
+      "supportAudio": false
+    }
+  }
+}
