@@ -30,7 +30,7 @@ function buildTTSPayload(text){
     ref_audio_path: "rev.wav",
     prompt_text: "どれだけ雨が降ったところで洗い流されて綺麗にはならない",
     prompt_lang: "ja",
-    top_k: 3, top_p: 1, temperature: 0.9, repetition_penalty: 1.5,
+    top_k: 15, top_p: 1, temperature: 1, repetition_penalty: 1,
     speed_factor: 1.0, text_split_method: "cut5", seed: -1, streaming_mode: false,
     text
   };

@@ -64,19 +64,36 @@ Rules:
         return String(s ?? '').replace(/\s+/g, ' ').trim();
       }
 
-function buildMemoryFromLogs(logs, n) {
+function buildMemoryFromLogs(logs, n, { excludeLatest = true, excludeId = null } = {}) {
+  if (!Array.isArray(logs) || logs.length === 0) return "";
 
-  const recentLogs = logs.filter(e => e.role === 'user' || e.role === 'assistant').slice(-n * 2);
+  // 1) Siapkan pool sumber data
+  let pool = logs;
 
-  return recentLogs.map(logEntry => {
-    const sanitizedText = sanitize(logEntry.text);
-    if (logEntry.role === 'user') {
-      return `<start_of_turn>user\n${sanitizedText}<end_of_turn>`;
-    } else { 
-      return `<start_of_turn>model\n${sanitizedText}<end_of_turn>`;
-    }
-  }).join('\n'); 
+  // 2) Jika diminta exclude by id spesifik
+  if (excludeId != null) {
+    pool = pool.filter(e => e && e.id !== excludeId);
+  } else if (excludeLatest && pool.length > 0) {
+    // 3) Atau default: buang elemen paling terakhir
+    pool = pool.slice(0, -1);
+  }
+
+  // 4) Ambil hanya role user/assistant lalu potong ke n*2 terakhir
+  const recentLogs = pool
+    .filter(e => e && (e.role === "user" || e.role === "assistant"))
+    .slice(-n * 2);
+
+  // 5) Format jadi string memory
+  return recentLogs
+    .map(logEntry => {
+      const sanitizedText = sanitize(logEntry.text || "");
+      return logEntry.role === "user"
+        ? `<|user|>\n${sanitizedText}</s>`
+        : `<|assistant|>\n${sanitizedText}</s>`;
+    })
+    .join("\n");
 }
+
       function postProcessReply(text) {
         let s = String(text ?? '');
 
@@ -89,22 +106,22 @@ function buildMemoryFromLogs(logs, n) {
       }
 
 
+      // main.js
 
       const FEW_SHOT = [
-        '<start_of_turn>user',
-        'What are you doing this weekend?<end_of_turn>',
-        '<start_of_turn>model',
-        'Probably just watch the dust settle. It\'s quieter than going out.<end_of_turn>',
-        '<start_of_turn>user',
-        'I\'m so excited, I bought a new game!<end_of_turn>',
-        '<start_of_turn>model',
-        '*Another bright, loud world...* Hope the loading screens are short for you.<end_of_turn>',
-        '<start_of_turn>user',
-        'how to make fried rice?<end_of_turn>',
-        '<start_of_turn>model',
-        'The oil always sizzles so loudly. It\'s... a lot. Why do you ask?<end_of_turn>',
+        '<|user|>',
+        'What are you doing this weekend?</s>',
+        '<|assistant|>',
+        'Probably just watch the dust settle. It\'s quieter than going out.</s>',
+        '<|user|>',
+        'I\'m so excited, I bought a new game!</s>',
+        '<|assistant|>',
+        '*Another bright, loud world...* Hope the loading screens are short for you.</s>',
+        '<|user|>',
+        'how to make fried rice?</s>',
+        '<|assistant|>',
+        'The oil always sizzles so loudly. It\'s... a lot. Why do you ask?</s>',
       ].join('\n');
-
 
 
       // Build final system prompt from UI prompt + optional blocks (memory, examples)
@@ -119,7 +136,7 @@ function buildMemoryFromLogs(logs, n) {
         if (state.settings.value.enableChatMemory && ui.logs.value.length) {
           const k = Math.max(1, Math.min(50, Number(state.settings.value.memoryTurns || 10)));
           const mem = buildMemoryFromLogs(ui.logs.value, k);
-          if (mem) parts.push(`Memory (recent ${k}):\n${mem}`);
+          if (mem) parts.push(`\n${mem}`);
         }
 
         // 3) Optional: few-shot examples (no role labels)
@@ -240,7 +257,7 @@ function buildMemoryFromLogs(logs, n) {
         handleMouseDown, handleMouseUp, handleClick, handleMouseMove
       };
     },
-    template: `
+ template: `
       <el-button id="setting-button" class="setting-button" type="primary" @click="togglePanelDisplay">
         <el-icon><Setting/></el-icon> Settings
       </el-button>
@@ -482,6 +499,7 @@ function buildMemoryFromLogs(logs, n) {
   @mouseleave="handleMouseUp"
 />
     `
+
   };
 
   const app = Vue.createApp(Root);

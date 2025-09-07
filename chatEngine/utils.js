@@ -28,3 +28,34 @@ export function cleanText(s){
   if (t.length > 220) t = t.slice(0, 220).trim() + '...';
   return t || '...';
 }
+// === ADD di utils.js ===
+export function sanitizeForPrompt(s = "") {
+  // Jangan biarkan tag kontrol bersarang di dalam konten
+  return String(s)
+    .replace(/<\|(?:system|user|assistant)\|>/gi, "")
+    .replace(/<\/s>/gi, "")
+    .replace(/[“”]/g, '"').replace(/[‘’]/g, "'") // normalize quotes
+    .trim();
+}
+
+const STOPS = ["<<END>>", "</s>", "<|user|>", "<|assistant|>"];
+
+export function cutAtStops(text, stops = STOPS) {
+  let end = text.length;
+  for (const stop of stops) {
+    const i = text.indexOf(stop);
+    if (i !== -1 && i < end) end = i;
+  }
+  return text.slice(0, end);
+}
+
+export function cleanAssistantOut(raw) {
+  if (!raw) return "...";
+  let t = raw.split(/<\|assistant\|>/i).pop(); // ambil segmen setelah tag asisten terakhir
+  t = cutAtStops(t);
+  t = t.replace(
+    /^(?:<\/?s>|<\/?\|?system\|?|<\/?\|?user\|?|<\/?\|?assistant\|?|\s|<[^>]{0,24}>)+/gi,
+    ""
+  );
+  return t.trim() || "...";
+}

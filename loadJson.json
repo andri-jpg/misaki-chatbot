@@ -25,13 +25,13 @@
   "ai": {
     "defaultEngine": "tflite", 
     "tflite": {
-      "modelAssetPath": "./model/gemma3-1b-it-int4-web.task",
-      "maxTokens": 512,
-      "temperature": 0.6,
-      "topK": 40,
+      "modelAssetPath": "./model/gemma3-4b-it-int4-web.task",
+      "maxTokens": 1028,
+      "temperature": 0.78,
+      "topK": 64,
       "randomSeed": 101,
       "maxNumImages": 0,
       "supportAudio": false
     }
   }
-}
+}    

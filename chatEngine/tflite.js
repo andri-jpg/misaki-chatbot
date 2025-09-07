@@ -11,12 +11,12 @@ let currentModelKey = null;
 export async function initLLM(options = {}) {
   // Destructure options with default values.
   const {
-    modelAssetPath = './model/gemma3-4b-it-int4-web.task',
-    maxTokens = 2048,
-    temperature = 0.8,
+    modelAssetPath = './model/Llama-3.2-1B-Instruct_multi-prefill-seq_q8_ekv1280.task',
+    maxTokens = 512,
+    temperature = 0.78,
     topK = 64,
     topP = 0.95,
-    randomSeed =101,
+    randomSeed = 101,
     maxNumImages = 0,
     supportAudio = false
   } = options;
@@ -61,28 +61,55 @@ export async function initLLM(options = {}) {
 }
 
 /**
- * Generates a response from the LLM based on a given prompt.
+ * Generates a response from the LLM based on a given prompt, with custom stop tokens.
  * @param {string} fullPrompt - The user's input prompt.
  * @param {object} opts - Options, including tflite model config.
  * @returns {Promise<string>} - The generated response.
  */
 export async function generate(fullPrompt, opts = {}) {
-  try {
-    // Ensure the LLM is initialized before generating.
-    await initLLM(opts.tflite || {});
-    // Apply a simple template to format the prompt.
-    const formattedPrompt = `${fullPrompt}`;
-    console.log("Formatted Prompt:", formattedPrompt);
-    // Get the response from the model.
-    const response = await llmInference.generateResponse(formattedPrompt);
-    // Return the response or a fallback string.
-    return response || "...";
-  } catch (error) {
-    // Log errors and return a fallback string.
-    console.error('Error generating response:', error);
-    return "...";
-  }
+  // MODIFIED: Wrapped in a Promise to handle streaming and custom stop conditions.
+  return new Promise(async (resolve, reject) => {
+    try {
+      await initLLM(opts.tflite || {});
+      const formattedPrompt = `${fullPrompt}`;
+      console.log("Formatted Prompt:", formattedPrompt);
+
+      // Define your stop tokens.
+      const stopTokens =['<s/>', '</s', '<s' , '<', '<<END>>', '<|user|>', '<|assistant|>'];
+      let accumulatedResponse = '';
+      let stopped = false;
+
+      // Use the streaming callback of generateResponse.
+      llmInference.generateResponse(formattedPrompt, (partialResult, done) => {
+        // If we've already stopped, do nothing.
+        if (stopped) return;
+
+        accumulatedResponse += partialResult;
+
+        // Check if any stop token is present in the accumulated response.
+        for (const token of stopTokens) {
+          if (accumulatedResponse.includes(token)) {
+            stopped = true;
+            // Get the text before the stop token.
+            const finalResponse = accumulatedResponse.substring(0, accumulatedResponse.indexOf(token)).trim();
+            resolve(finalResponse || "...");
+            return; // Exit the callback
+          }
+        }
+
+        // If generation is finished without finding a stop token.
+        if (done) {
+          stopped = true;
+          resolve(accumulatedResponse.trim() || "...");
+        }
+      });
+    } catch (error) {
+      console.error('Error generating response:', error);
+      reject(error); // Reject the promise on error
+    }
+  });
 }
+
 
 /**
  * Cleans up and releases the LLM resources.

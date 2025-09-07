@@ -26,9 +26,9 @@ Answer the user briefly.
 
   // To enable policy, uncomment the next line:
   // systemPrompt = `${(systemPrompt||"").trim()}\n\n${policy}`;
-const finalTurn = `<start_of_turn>user
-${userText}<end_of_turn>
-<start_of_turn>model`;
+const finalTurn = `<|user|>
+${userText} </s>
+<|assistant|>`;
 
 return `${systemPrompt}\n${finalTurn}`;
 }
