@@ -16,7 +16,9 @@ export const state = {
     talking: true, talkingInterval: 0, penetration: false, autoTalk: false,
     enableMic: false,
     micDeviceId: "",
-    micVadThreshold: 0.6
+    micVadThreshold: 0.6,
+    asrUrl: "http://127.0.0.1:9880/mic",
+    micMode : "client"
   }),
   app: Vue.ref({
     mouseDown: false, isAnimation: false, talkIndex: 1, isInterval: false,

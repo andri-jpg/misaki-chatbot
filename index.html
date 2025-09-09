@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Interactive Spine Character (Modern UI)</title>
+  <title>Interactive Spine Character</title>
   <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css"/>
   <style>
     html, body {
@@ -29,8 +29,19 @@
       pointer-events: none;
     }
 
-    #app > * {
-      pointer-events: auto;
+    /* Fix pointer events for UI elements */
+    .setting-button,
+    .setting,
+    .chatdock {
+      pointer-events: auto !important;
+    }
+
+    .setting * {
+      pointer-events: auto !important;
+    }
+
+    .chatdock * {
+      pointer-events: auto !important;
     }
 
     /* Modern setting button */
@@ -38,7 +49,7 @@
       position: absolute;
       top: 24px;
       right: 24px;
-      z-index: 10;
+      z-index: 100;
       border-radius: 12px;
       padding: 12px 20px;
       backdrop-filter: blur(10px);
@@ -63,10 +74,11 @@
       max-height: calc(100vh - 120px);
       border-radius: 16px;
       backdrop-filter: blur(20px);
-      background: rgba(255, 255, 255, 0.95);
+      background: rgba(255, 255, 255, 0.98);
       border: 1px solid rgba(255, 255, 255, 0.3);
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
       overflow: hidden;
+      z-index: 101;
     }
 
     .setting-header {
@@ -82,9 +94,14 @@
       border-radius: 8px;
     }
 
+    .setting-tabs {
+      height: 100%;
+    }
+
     .setting-tabs .el-tabs__header {
       margin: 0;
       border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+      background: rgba(255, 255, 255, 0.8);
     }
 
     .setting-tabs .el-tabs__nav-wrap {
@@ -95,21 +112,66 @@
       padding: 20px;
       max-height: calc(100vh - 280px);
       overflow-y: auto;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Enhanced slider styles */
+    .el-slider {
+      margin: 12px 0;
+      padding: 0 12px;
+    }
+
+    .el-slider__runway {
+      background-color: rgba(0, 0, 0, 0.1);
+      border-radius: 6px;
+      height: 8px;
+    }
+
+    .el-slider__bar {
+      background: linear-gradient(90deg, #409eff, #67c23a);
+      border-radius: 6px;
+      height: 8px;
+    }
+
+    .el-slider__button {
+      border: 3px solid #409eff;
+      background: white;
+      width: 20px;
+      height: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .el-slider__button:hover {
+      transform: scale(1.1);
+    }
+
+    /* Input number improvements */
+    .el-input-number {
+      width: 100%;
+    }
+
+    .el-input-number .el-input__inner {
+      text-align: center;
+      border-radius: 8px;
     }
 
     /* Custom scrollbar */
     .setting-tabs .el-tabs__content::-webkit-scrollbar {
-      width: 6px;
+      width: 8px;
     }
 
     .setting-tabs .el-tabs__content::-webkit-scrollbar-track {
       background: rgba(0, 0, 0, 0.05);
-      border-radius: 3px;
+      border-radius: 4px;
     }
 
     .setting-tabs .el-tabs__content::-webkit-scrollbar-thumb {
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 3px;
+      background: linear-gradient(180deg, #409eff, #67c23a);
+      border-radius: 4px;
+    }
+
+    .setting-tabs .el-tabs__content::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, #337ecc, #529b2e);
     }
 
     /* Speech bubble */
@@ -129,6 +191,7 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
       font-size: 16px;
       line-height: 1.5;
+      z-index: 50;
     }
 
     .opacity-in {
@@ -149,7 +212,7 @@
       border: 1px solid rgba(255, 255, 255, 0.3);
       box-shadow: 0 16px 48px rgba(0, 0, 0, 0.1);
       padding: 16px;
-      z-index: 20;
+      z-index: 99;
     }
 
     .chat-input-container {
@@ -167,24 +230,71 @@
       padding: 12px 24px;
     }
 
-    /* Interaction area */
+    /* Interaction area - should have lower z-index */
     .interaction-area {
       position: absolute;
       inset: 0;
-      z-index: 1;
+      z-index: 0;
+    }
+
+    .interaction-area.pe-none {
+      pointer-events: none;
     }
 
     /* Form improvements */
     .el-form-item {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
     }
 
-    .el-input-number {
+    .el-form-item__label {
+      font-weight: 500;
+      color: #303133;
+    }
+
+    /* Slider container with value display */
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .slider-container .el-slider {
+      flex: 1;
+      margin: 0;
+    }
+
+    .slider-value {
+      min-width: 60px;
+      font-weight: 500;
+      color: #409eff;
+      text-align: center;
+      padding: 4px 8px;
+      background: rgba(64, 158, 255, 0.1);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    /* Enhanced form controls */
+    .el-input {
+      border-radius: 8px;
+    }
+
+    .el-select {
       width: 100%;
     }
 
-    .el-slider {
-      margin: 8px 0;
+    .el-button {
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    .el-switch {
+      --el-switch-on-color: #409eff;
+      --el-switch-off-color: #dcdfe6;
+    }
+
+    .el-radio-button {
+      border-radius: 6px;
     }
 
     /* Custom fonts */
@@ -229,10 +339,28 @@
 
     .el-tabs__item {
       font-weight: 500;
+      transition: all 0.2s ease;
     }
 
     .el-tabs__item.is-active {
       font-weight: 600;
+    }
+
+    .el-tabs__item:hover {
+      color: #409eff;
+    }
+
+    /* Fix element-plus overlay issues */
+    .el-overlay {
+      z-index: 2000;
+    }
+
+    .el-message-box {
+      z-index: 2001;
+    }
+
+    .el-notification {
+      z-index: 2002;
     }
   </style>
 </head>
@@ -251,6 +379,7 @@
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <script src="https://unpkg.com/element-plus"></script>
   <script src="https://cdn.jsdelivr.net/npm/revolt-fx@1.1.0/dist/revoltfx.min.js"></script>
+  <script src="https://unpkg.com/@element-plus/icons-vue@2/dist/index.iife.min.js"></script>
 
   <!-- Main application -->
   <script type="module" src="./main.js"></script>
