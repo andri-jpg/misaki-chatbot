@@ -59,6 +59,7 @@ export function mountPixi(spineContainerId = "spine") {
 }
 
 export function loadSpineAndFx() {
+  
   const { settings, config, spineModels, pixiApp } = state;
   config.fileNames.forEach(name => {
     spineModels.push({ name, url: `./${settings.value.textureResolution}/${name}.skel` });
@@ -71,6 +72,7 @@ export function loadSpineAndFx() {
 }
 
 function onAssetsLoaded(loader, resources) {
+  
   state.fx.initBundle(resources.fx_settings.data);
   state.pixiApp.ticker.add(() => state.fx.update());
 
@@ -83,9 +85,8 @@ function onAssetsLoaded(loader, resources) {
     model.spine.x = s.position.x; model.spine.y = s.position.y; model.spine.scale.set(s.scale);
     state.pixiApp.stage.addChild(model.spine);
     model.spine.zIndex = state.zIndexCounter;
-
-    // welcome → idle loop
     safeStartIdle(model.spine);
+    // welcome → idle loop
   });
 
   // event SFX & bubble
@@ -132,7 +133,7 @@ function onAssetsLoaded(loader, resources) {
   state.bgmAudio.volume = state.settings.value.bgmVolume;
   state.bgmAudio.play().catch(() => { });
   state.talkAudio.volume = state.settings.value.talkVolume;
-
+  
   // load serifu
   parseDialogueFile("./serifu.txt");
 
@@ -150,6 +151,7 @@ function onAssetsLoaded(loader, resources) {
 let dialogueData = { ch: {}, jp: {}, en: {}, th: {}, kr: {}, vi: {}, ru: {} };
 
 function initDOM() {
+  
   state.dialogEl = document.getElementById("badialog");
   state.talkAudio = document.getElementById("talkaudio");
   state.chatAudio = document.getElementById("chataudio");
@@ -160,6 +162,7 @@ function initDOM() {
   state.dialogEl.style.marginTop = `${s.textPointY}px`;
   state.dialogEl.style.fontSize = `${s.fontSize}px`;
   state.dialogEl.style.fontFamily = s.language === "ch" ? "TJL" : s.language === "jp" ? "XW" : "Microsoft YaHei";
+  
 }
 
 export function saveSettings() {
@@ -256,10 +259,11 @@ function parseDialogueFile(url) {
   const text = xhrGetSync(url); if (!text) return;
   const lines = text.split('\n'); let i = 0;
   const langCount = Object.keys(dialogueData).length;
+  console.log(langCount);
   state.spineModels[0].spine.spineData.events.forEach(ev => {
     if (ev.name !== "Talk") {
       if (state.config.language.includes("jp")) dialogueData.jp[ev.name] = lines[i];
-      if (state.config.language.includes("ch")) dialogueData.ch[ev.name] = lines[i + Math.floor(lines.length / langCount)];
+      if (state.config.language.includes("en")) dialogueData.ch[ev.name] = lines[i + Math.floor(lines.length / langCount)];
       if (state.config.language.includes("en")) dialogueData.en[ev.name] = lines[i + Math.floor(lines.length / langCount * 2)];
       if (state.config.language.includes("th")) dialogueData.th[ev.name] = lines[i + Math.floor(lines.length / langCount * 3)];
       if (state.config.language.includes("kr")) dialogueData.kr[ev.name] = lines[i + Math.floor(lines.length / langCount * 4)];
@@ -272,24 +276,30 @@ function parseDialogueFile(url) {
 
 
 function safeStartIdle(spine) {
-  const names = spine.spineData.animations.map(a => a.name);
-  const idle = names.includes("Idle_01")
-    ? "Idle_01"
-    : names.find(n => /idle/i.test(n)) || names[0];
+  const state = spine.state;
+  const idle  = "Idle_01";
+  const start = "Start_Idle_01";
 
-  if (state.hasPlayedStartIdle) {
+  const cur = state.getCurrent(0);
 
-    spine.state.setAnimation(0, idle, true);
+  if (!cur) {
+    state.setAnimation(0, start, false);
+    state.addAnimation(0, idle, true, 0);
     return;
   }
 
+  if (cur.animation && cur.animation.name === start) {
+    if (!cur.next || !cur.next.animation || cur.next.animation.name !== idle) {
+      state.addAnimation(0, idle, true, 0);
+    }
+    return;
+  }
 
-  const start = names.includes("Start_Idle_01") ? "Start_Idle_01" : null;
-  spine.state.setAnimation(0, start, false);
-  spine.state.addAnimation(0, idle, true, 0);
-
-  state.hasPlayedStartIdle = true;
+  if (!cur.animation || cur.animation.name !== idle) {
+    state.setAnimation(0, idle, true);
+  }
 }
+
 
 
 function playNextAnimationInSequence() {

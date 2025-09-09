@@ -8,7 +8,7 @@
   "headAnimationEnd" : "PatEnd_01",
   "language": ["jp","ch","en","vi","th","kr"],
   "animationIndex": [
-    {"name": "Misaki_home", "animationName": "Start_Idle_01"}
+ 
   ],
   "mixType": 1,
   "talkMax": 5,
